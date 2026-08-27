@@ -29,10 +29,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
 
-      - name: Create temporary BGG token
-        run: python scripts/setup_bgg_token.py
+      - name: Check private BGG token
+        env:
+          GAMECACHE_BGG_TOKEN: ${{ secrets.GAMECACHE_BGG_TOKEN }}
+        run: |
+          if [ -z "$GAMECACHE_BGG_TOKEN" ]; then
+            echo "::error::Add GAMECACHE_BGG_TOKEN in repository Actions secrets."
+            exit 1
+          fi
 
       - name: Build and publish collection
         env:
           GAMECACHE_GITHUB_TOKEN: ${{ github.token }}
+          GAMECACHE_BGG_TOKEN: ${{ secrets.GAMECACHE_BGG_TOKEN }}
         run: python scripts/download_and_index.py --debug
